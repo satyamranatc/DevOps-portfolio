@@ -1,0 +1,40 @@
+services:
+  # Option A: Ultra-Fast Global Static Site on Render CDN
+  - type: web
+    name: devops-portfolio-static
+    runtime: static
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    pullRequestPreviewsEnabled: true
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+      - path: /*
+        name: Strict-Transport-Security
+        value: max-age=63072000; includeSubDomains; preload
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+
+  # Option B: Docker Containerized Web Service
+  - type: web
+    name: devops-portfolio-docker
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /healthz
+    envVars:
+      - key: PORT
+        value: 80
